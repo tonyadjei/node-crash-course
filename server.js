@@ -58,3 +58,12 @@ const server = http.createServer((req, res) => {
 server.listen(3000, 'localhost', () => { //the callback function fires when we begin listening
     console.log('listening for requests on port 3000'); 
 })
+
+/* 
+--------STATUS CODES-----------
+100 ------- informational responses
+200 ------- success codes
+300 ------- code redirects
+400 ------- user or client side errors
+500 ------- internal server errors
+*/
