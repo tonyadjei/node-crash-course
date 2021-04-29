@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<%- include('./partials/head.ejs') %>
+<%- include('../partials/head.ejs') %>
 <body>
 <!-- on the next line, we are outputting a value, our navbar partial template, we use '-' and not '=' in this case as '-' does not escape special characters, so we will get the raw HTML. '=' escapes special characters and returns a string -->
-    <%- include('./partials/nav.ejs') %>
+    <%- include('../partials/nav.ejs') %>
 
     <div class="blogs content">
         <h2>All blogs</h2>
@@ -20,6 +20,6 @@
         <% } %>
     </div>
 
-    <%- include('./partials/footer.ejs') %>    
+    <%- include('../partials/footer.ejs') %>    
 </body> 
 </html>
