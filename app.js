@@ -3,16 +3,30 @@ const express = require('express');
 // using a 3rd party middleware: morgan is a logger middleware for node.js
 const morgan = require('morgan');
 
+const mongoose = require('mongoose');
+
 // create an express app
 
 const app = express();
 
+const Blog = require('./models/blog');
+
+// connect to mongodb
+const dbURI = 'mongodb+srv://tonygrace:Tonyadjei2402@nodejs.4fw0l.mongodb.net/nodeJS?retryWrites=true&w=majority';
+// mongoose.connect is async and returns a promise
+mongoose.connect(dbURI, {useNewUrlParser: true, useUnifiedTopology: true})
+    .then((result) => app.listen(3000))
+    .catch((err) => console.log(err));
+
+
+
+
 // register view engine
 app.set('view engine', 'ejs') //app.set() is a method for configuring the web app
 // app.set('views', 'myViewsFolder') this can be used when your views are in a different folder other than the default expected place which is a 'views' directory in your project.
-// listen for requests
 
-app.listen(3000);
+// listen for requests
+// app.listen(3000); // now that we are connecting to the MongoDB database with mongoose, we want to only listen for requests when we know that we are connected to the database.(this is done on line 18)
 
 // using morgan(3rd party middleware package installed from npm)
 app.use(morgan('dev'));
@@ -25,7 +39,51 @@ app.use(morgan('dev'));
 
 app.use(express.static('public')); // here, we indicate which folder we are making public and that will contain our static files. the browser has access to all files inside this folder, e.g. 'localhost:3000/styles.css' will display the css file to the browser
 
+// built-in express middleware for parsing url encoded data from forms into an object on the req object
+app.use(express.urlencoded({ extended: true }));
 
+// mongoose and MongoDB sandbox routes (these routes were just to practice with how we can use our Blog model to interact with MonogoDB)
+
+app.get('/add-blog', (req, res) => {
+    // create a blog instance from the Blog model we have imported and save it to the database. NB. mongoose will automatically find the corresponding collection to save it to
+    const blog = new Blog({
+        title: 'cook my fav cake',
+        snippet: 'about my new blog',
+        body: 'more about my new blog'
+    });
+    blog.save()
+        .then((result) => {
+            res.send(result)
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+
+});
+
+// retrieve all blogs from the database
+app.get('/all-blogs', (req, res) => {
+    // here, we use a static method on the Blog model to get all the documents in the blogs collection
+    Blog.find()
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+// finding a single blog in the blogs collection
+
+app.get('/single-blog', (req, res) => {
+    Blog.findById('608a9120aaf961111bcc1412') // the id's which are automatically generated for us by MonogDB for each document in a collection is not a string. Its type is an ' Object id'. However, mongoose automatically parses this into strings and also from strings into the Object id for us.
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
 
 // app.use((req, res, next) => {
 //     console.log('new request made:');
@@ -44,12 +102,13 @@ app.use(express.static('public')); // here, we indicate which folder we are maki
 app.get('/', (req, res) => {
     // res.send('<p>home page </p>');  send() method automatically deduces the Content-Type header and also the status codes(in most cases)
     // res.sendFile('./views/index.html', { root: __dirname });
-    const blogs = [
-        {title: 'Fry some eggs', snippet: 'Lorem ipsum dolor sit amet consectetur'},
-        {title: 'Cook some chicken', snippet: 'Lorem ipsum dolor sit amet consectetur'},
-        {title: 'Drink some soup', snippet: 'Lorem ipsum dolor sit amet consectetur'}
-    ];
-    res.render('index', { title: 'Home', blogs });
+    // const blogs = [
+    //     {title: 'Fry some eggs', snippet: 'Lorem ipsum dolor sit amet consectetur'},
+    //     {title: 'Cook some chicken', snippet: 'Lorem ipsum dolor sit amet consectetur'},
+    //     {title: 'Drink some soup', snippet: 'Lorem ipsum dolor sit amet consectetur'}
+    // ];
+    // res.render('index', { title: 'Home', blogs });
+    res.redirect('/blogs');
 });
 
 app.get('/about', (req, res) => {
@@ -57,6 +116,51 @@ app.get('/about', (req, res) => {
     // res.sendFile('./views/about.html', { root: __dirname });
     res.render('about', { title: 'About' });
 });
+
+//blog routes
+app.get('/blogs', (req, res) => {
+    Blog.find().sort({ createdAt: -1 }) // we tag along a sort() method to sort the documents. We are sorting by the 'createdAt' property, the -1 means descending order.
+        .then((result) => {
+            res.render('index', { title: 'All Blogs', blogs: result })
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+app.post('/blogs', (req, res) => {
+    // console.log(req.body);
+    const blog = new Blog(req.body);
+    blog.save()
+        .then((result) => {
+            res.redirect('/blogs');
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+app.get('/blogs/:id', (req, res) => {
+    const id = req.params.id; // here, we are saying that look at the url, take whatever comes after '/blogs/' and store it in a property called 'id' inside the req object's params property.(req.params) 
+    // console.log(id);
+    Blog.findById(id)
+        .then((result) => {
+            res.render('details', { blog: result, title: 'Blog Details' });
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+app.delete('/blogs/:id', (req, res) => {
+    const id = req.params.id;
+    Blog.findByIdAndDelete(id)
+        .then(result => {
+            // here, we cannot redirect the user to another page like the blogs page because the request was done on the front-end with javascrip(an ajax request) and was not done with a web form or anything like that
+            res.json({ redirect: '/blogs' }) // we can send JSON data to the browser using res.json(), res.json() takes in a javascript object, but it will later parse it into JSON format
+        })
+        .catch(err => console.log(err));
+})
 
 app.get('/blogs/create', (req, res) => {
     res.render('create', { title: 'Create a new Blog' });

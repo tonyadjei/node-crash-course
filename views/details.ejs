@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('./partials/head.ejs') %>
+<body>
+    <%- include('./partials/nav.ejs') %>
+
+    <div class="details content">
+        <h2><%= blog.title %></h2>
+        <div class="content">
+            <p><%= blog.body %></p>
+        </div>
+        <a class="delete" data-doc="<%= blog._id %>">delete</a>
+    </div>
+
+
+
+    <%- include('./partials/footer.ejs') %>
+
+    <script>
+        const trashcan = document.querySelector('a.delete');
+        trashcan.addEventListener('click', (e) => {
+            const endpoint = `/blogs/${trashcan.dataset.doc}`;
+            // now we will use the fetch() api to make an http request to the server.
+            // the code below with the fetch API is an ajax request because we are doing it with javascript on the fron-end and the request is not from a web form or anything like that.
+            // for ajax requests, the server cannot redirect us to another page after receiving the request. It can only send back to the browser a JSON or text file.
+            fetch(endpoint, {
+                method: 'DELETE'
+            })
+            .then((response) => response.json()) // so now after having made the ajax request to the server, we receive a json data from the server. we have to parse this into an actual javascript object that we can use. and doing that is also asynchronous and returns a promise.
+            .then((data) => window.location.href = data.redirect)
+            .catch(err => console.log(err));
+        });
+    </script>
+
+</body>
+</html>

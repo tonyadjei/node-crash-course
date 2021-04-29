@@ -8,13 +8,14 @@
 
 
     <div class="create-blog content">
-        <form>
+        <form action="/blogs" method="POST"> <!-- when the submit button is clicked, we are making a POST request to the '/blogs' route-->
+            <!-- if we want to access the values of the input field in the body of the POST request, we need to give each input field a name attribute -->
             <label for="title">Blog title:</label>
-            <input type="text" id="title" required>
+            <input type="text" id="title" name="title" required>
             <label for="snippet">Blog snippet:</label>
-            <input type="text" id="snippet" required>
+            <input type="text" id="snippet" name="snippet" required>
             <label for="body">Blog body:</label>
-            <textarea id="body" required></textarea>
+            <textarea id="body" required name="body"></textarea>
             <button>Submit</button>
         </form>
     </div>
