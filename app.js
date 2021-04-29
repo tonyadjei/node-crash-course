@@ -9,7 +9,9 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-const Blog = require('./models/blog');
+// const Blog = require('./models/blog');
+
+const blogRoutes = require('./routes/blogRoutes')
 
 // connect to mongodb
 const dbURI = 'mongodb+srv://tonygrace:Tonyadjei2402@nodejs.4fw0l.mongodb.net/nodeJS?retryWrites=true&w=majority';
@@ -17,8 +19,6 @@ const dbURI = 'mongodb+srv://tonygrace:Tonyadjei2402@nodejs.4fw0l.mongodb.net/no
 mongoose.connect(dbURI, {useNewUrlParser: true, useUnifiedTopology: true})
     .then((result) => app.listen(3000))
     .catch((err) => console.log(err));
-
-
 
 
 // register view engine
@@ -118,53 +118,8 @@ app.get('/about', (req, res) => {
 });
 
 //blog routes
-app.get('/blogs', (req, res) => {
-    Blog.find().sort({ createdAt: -1 }) // we tag along a sort() method to sort the documents. We are sorting by the 'createdAt' property, the -1 means descending order.
-        .then((result) => {
-            res.render('index', { title: 'All Blogs', blogs: result })
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-});
+app.use('/blogs', blogRoutes); // we now use our express router that we created for all our blog routes, and also, we are saying that that express router should only be used for routes that begin with '/blogs'
 
-app.post('/blogs', (req, res) => {
-    // console.log(req.body);
-    const blog = new Blog(req.body);
-    blog.save()
-        .then((result) => {
-            res.redirect('/blogs');
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-});
-
-app.get('/blogs/:id', (req, res) => {
-    const id = req.params.id; // here, we are saying that look at the url, take whatever comes after '/blogs/' and store it in a property called 'id' inside the req object's params property.(req.params) 
-    // console.log(id);
-    Blog.findById(id)
-        .then((result) => {
-            res.render('details', { blog: result, title: 'Blog Details' });
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-});
-
-app.delete('/blogs/:id', (req, res) => {
-    const id = req.params.id;
-    Blog.findByIdAndDelete(id)
-        .then(result => {
-            // here, we cannot redirect the user to another page like the blogs page because the request was done on the front-end with javascrip(an ajax request) and was not done with a web form or anything like that
-            res.json({ redirect: '/blogs' }) // we can send JSON data to the browser using res.json(), res.json() takes in a javascript object, but it will later parse it into JSON format
-        })
-        .catch(err => console.log(err));
-})
-
-app.get('/blogs/create', (req, res) => {
-    res.render('create', { title: 'Create a new Blog' });
-});
 
 // redirects
 app.get('/about-us', (req, res) => {
