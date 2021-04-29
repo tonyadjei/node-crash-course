@@ -46,6 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/add-blog', (req, res) => {
     // create a blog instance from the Blog model we have imported and save it to the database. NB. mongoose will automatically find the corresponding collection to save it to
+    // this code will no longer work because we have removed the Blog model and implemented the MVC Design pattern
     const blog = new Blog({
         title: 'cook my fav cake',
         snippet: 'about my new blog',
@@ -64,6 +65,8 @@ app.get('/add-blog', (req, res) => {
 // retrieve all blogs from the database
 app.get('/all-blogs', (req, res) => {
     // here, we use a static method on the Blog model to get all the documents in the blogs collection
+    // this code will no longer work because we have removed the Blog model and implemented the MVC Design pattern
+
     Blog.find()
         .then((result) => {
             res.send(result);
@@ -74,6 +77,7 @@ app.get('/all-blogs', (req, res) => {
 });
 
 // finding a single blog in the blogs collection
+// this code will no longer work because we have removed the Blog model and implemented the MVC Design pattern
 
 app.get('/single-blog', (req, res) => {
     Blog.findById('608a9120aaf961111bcc1412') // the id's which are automatically generated for us by MonogDB for each document in a collection is not a string. Its type is an ' Object id'. However, mongoose automatically parses this into strings and also from strings into the Object id for us.
@@ -121,7 +125,7 @@ app.get('/about', (req, res) => {
 app.use('/blogs', blogRoutes); // we now use our express router that we created for all our blog routes, and also, we are saying that that express router should only be used for routes that begin with '/blogs'
 
 
-// redirects
+// redirects (when you have updated a link or route but users are still going to the old one, just catch it and redirect them to the new route)
 app.get('/about-us', (req, res) => {
     res.redirect('/about');
 });
@@ -136,3 +140,7 @@ app.use((req, res) => {
     // res.status(404).sendFile('./views/404.html', { root: __dirname });
     res.status(404).render('404', { title: '404' });
 })
+
+
+//NB: when you are using 3rd party middleware inside your app.use(), you do not need to add the next() method because the 3rd party software already does it for us. Also, anytime you send a response to the server, code execution stops and the middleware functions do not continue, so there's no need to say next()
+// remember app.use() runs for all incoming requests, whether GET, POST, PUT or DELETE. It can also take the callback function with the req and res as arguments and also send a response or make a redirect (it can work like a normal get or post handler)
